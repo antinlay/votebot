@@ -19,7 +19,7 @@ import smtplib
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN_API = '639642745:AAHd9aIHomuZZH7-pxJPRpWAAdMjF4vHRWc'
+TOKEN_API = '5595416871:AAEgo1_AqnHMqbWemI8fPplxy3n2pbqcXy0'
 
 bot = Bot(token=TOKEN_API)
 
@@ -75,7 +75,9 @@ def sendFilter(filter, id):
     return city_users
 
 def rndCode():
-    return random.randint(1000, 9999)
+    rnd = '2121'
+    return rnd
+    # return random.randint(1000, 9999)
 
 def sendEmail(gmail_user, username, postfixMail, rndFour):
     sent_from = gmail_user
