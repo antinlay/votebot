@@ -19,7 +19,7 @@ import smtplib
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN_API = '5595416871:AAEgo1_AqnHMqbWemI8fPplxy3n2pbqcXy0'
+TOKEN_API = '639642745:AAHd9aIHomuZZH7-pxJPRpWAAdMjF4vHRWc'
 
 bot = Bot(token=TOKEN_API)
 
@@ -134,7 +134,7 @@ buttonTribe3 = KeyboardButton('air')
 buttonTribe4 = KeyboardButton('terra')
 keyboardTribe = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).row(buttonTribe1, buttonTribe2, buttonTribe3, buttonTribe4).add(buttonCancel)
 
-keyboardRole = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).row(buttonStudent, buttonAdmin)
+keyboardRole = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(buttonStudent)
 
 buttonSendAll = KeyboardButton('Send all users')
 buttonGroupFilter = KeyboardButton('Group filter')
@@ -198,7 +198,7 @@ async def saveRole(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['role'] = message.text
         print(data['role'])
-    await Form.next()
+    # await Form.next()
     curUser = message.from_user.id
     nameUser = message.from_user.username
     user = User.query.filter_by(user_id=curUser).first()
@@ -218,7 +218,6 @@ async def saveRole(message: types.Message, state: FSMContext):
         elif data['role'] == "/student":
             await message.answer(f'Welcome back, ' + str(nameUser), reply_markup=keyboardStud)
             await Form.role.set()
-
         else:
             await message.answer(f'Sorry, you dont have permission ', reply_markup=ReplyKeyboardRemove())
             await state.finish()
@@ -234,16 +233,20 @@ async def sendUsername(message: types.Message, state: FSMContext):
         postfixMail = '@student.21-school.ru'
     else:
         return
+
     rndFour = rndCode()
     await message.reply('Enter code from your email ' + data['username'] + postfixMail + ':')
     sendEmail(gmail_user, data['username'], postfixMail, rndFour)
-    await Form.next()
+    await Form.code.set()
+    print(data['role'], 'sdfsaa')
     @dp.message_handler(lambda message: not message.text.isdigit(), state=Form.code)
     async def checkCode(message: types.Message):
         return await message.reply('Code is WRONG.\nTry again:')
 
     @dp.message_handler(state=Form.code)
-    async def processCode(message: types.Message, state: FSMContext):
+    async def processCode(message: types.Message):
+        print(data['role'])
+        # logging(state.get_state())
         if str(rndFour) == message.text:
             await state.update_data(rndFour=int(message.text))
             if data['role'] == "/adm":
@@ -251,7 +254,7 @@ async def sendUsername(message: types.Message, state: FSMContext):
                 await message.answer("All right!\nChoose your campus:", reply_markup=keyboardCampus)
 
             else:
-                await Form.next()
+                await Form.wave.set()
                 await message.answer("All right!\nChoose your wave:", reply_markup=keyboardWave)
         else:
             # await state.finish()
@@ -292,6 +295,7 @@ async def processCampus(message: types.Message, state: FSMContext):
         curUser = message.from_user
         markup = types.ReplyKeyboardRemove()
         if data['role'] == '/student':
+            print('dasdas', data['role'])
             newUser = User(user_id=curUser.id, telegram_username=curUser.username, platform_username=data['username'],
                            city_id=data['campus'], admin_status=False, tribe_id=data['tribe'], wave_id=data['wave'])
             db.session.add(newUser)
@@ -312,7 +316,7 @@ async def processCampus(message: types.Message, state: FSMContext):
             await Form.role.set()
             await message.answer('You have Student permissions. Now you can create and reply poll',
                                  reply_markup=keyboardRole)
-        else:
+        elif data['role'] == '/adm':
             newUser = User(user_id=curUser.id, telegram_username=curUser.username, platform_username=data['username'],
                            city_id=data['campus'], admin_status=True, tribe_id=0, wave_id=0)
             db.session.add(newUser)
@@ -329,13 +333,9 @@ async def processCampus(message: types.Message, state: FSMContext):
                 reply_markup=markup,
                 parse_mode=ParseMode.MARKDOWN,
             )
-            await Form.role.set()
+            await state.finish()
             await message.answer('You have Admin permissions. Now you can create and reply poll',
-                                 reply_markup=keyboardCreatePoll)
-    # print(data['username'], data['role'], data['wave'], data['tribe'], data['campus'], User.user_id)
-    await Form.role.set()
-
-# poll = State()
+                                 reply_markup=ReplyKeyboardRemove())
 
 @dp.message_handler(commands=["create_poll"])
 async def cmd_start(message: types.Message):
