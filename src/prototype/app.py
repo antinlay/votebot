@@ -19,7 +19,7 @@ import smtplib
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN_API = '639642745:AAHd9aIHomuZZH7-pxJPRpWAAdMjF4vHRWc'
+TOKEN_API = '639642:AAHd9FFZZH7-pxJPRpWAAdMjF4vHRWc'
 
 bot = Bot(token=TOKEN_API)
 
